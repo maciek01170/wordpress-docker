@@ -1,46 +1,46 @@
 # Overview 
 The project contains 3 docker containers:
-1. wiez-volumes is just the data volume holding the data for database and wordpress
-2. wiez-database is the mysql instance with data from wiez-volumes
-3. wiez-wordpress is the wordpress container with data from wiez-volumes
+1. wp-volumes is just the data volume holding the data for database and wordpress
+2. wp-database is the mysql instance with data from wp-volumes
+3. wp-wordpress is the wordpress container with data from wp-volumes
 
 # Build (local)
-* `docker build -t wiez-volumes:latest volumes/` 
-* `docker build -t wiez-wordpress:latest wordpress/`
+* `docker build -t wp-volumes:latest volumes/` 
+* `docker build -t wp-wordpress:latest wordpress/`
 
 # Run (from local images)
 ... use the shell script **`run-all.sh`**:
 
-* Data volume: `docker run --name wiez-volumes -v $(pwd)/data/var/lib/mysql:/var/lib/mysql -v $(pwd)/data/var/www/html:/var/www/html -d wiez-volumes tail -f /dev/null`
-    + parameter: `--name wiez-volumes` gives the name `wiez-volumes` to the container, so other containers can see it
+* Data volume: `docker run --name wp-volumes -v $(pwd)/data/var/lib/mysql:/var/lib/mysql -v $(pwd)/data/var/www/html:/var/www/html -d wp-volumes tail -f /dev/null`
+    + parameter: `--name wp-volumes` gives the name `wp-volumes` to the container, so other containers can see it
     + parameter `--v \$(pwd)/data/var/www/html:/var/www/html` mounts the host directory $(pwd)/data/var/www/html in container as /var/www/html 
     + parameter `--d` detaches the container (it is run in background)
-    + parameter `wiez-volumes` is the name of the image to run
+    + parameter `wp-volumes` is the name of the image to run
     + parameter `tail -f /dev/null` gives the command to execute (this one never ends)
   
-* Database: `docker run --name wiez-database --volumes-from wiez-volumes -e MYSQL_ROOT_PASSWORD=mysecretpassword -d mysql`
-    + parameter `--name wiez-database` gives the name `wiez-database` to the container, so other containers can see it
-    + parameter `--volumes-from wiez-volumes` links the container to `wiez-volumes`, so that the directory /var/lib/mysql is taken from wiez-volumes
+* Database: `docker run --name wp-database --volumes-from wp-volumes -e MYSQL_ROOT_PASSWORD=mysecretpassword -d mysql`
+    + parameter `--name wp-database` gives the name `wp-database` to the container, so other containers can see it
+    + parameter `--volumes-from wp-volumes` links the container to `wp-volumes`, so that the directory /var/lib/mysql is taken from wp-volumes
     + parameter `-e MYSQL\_ROOT\_PASSWORD=mysecretpassword` passes the environment variable to the container _init script_
 
-* Wordpress: `docker run --name wiez-wordpress --volumes-from wiez-volumes --link wiez-database:mysql -p 8080:80 -d wiez-wordpress:latest`
-    + parameter `--name wiez-wordpress` gives the name `wiez-wordpress` to the container, so other containers can see it
-    + parameter `--volumes-from wiez-volumes` links the container to `wiez-volumes`, so that the directory /var/www/html is taken from wiez-volumes
+* Wordpress: `docker run --name wp-wordpress --volumes-from wp-volumes --link wp-database:mysql -p 8080:80 -d wp-wordpress:latest`
+    + parameter `--name wp-wordpress` gives the name `wp-wordpress` to the container, so other containers can see it
+    + parameter `--volumes-from wp-volumes` links the container to `wp-volumes`, so that the directory /var/www/html is taken from wp-volumes
     + parameter `-p 8080:80` maps the port 80 of the container to the port 8080
-    + parameter `-link wiez-database:mysql` links the container `link-wiez-database`as local name `mysql` 
+    + parameter `-link wp-database:mysql` links the container `link-wp-database`as local name `mysql` 
 
 # Backup/restore data
 All data persist in `data/` directory, so do whatever you want ....
 
-We launched `wiez-volumes` container with direct mapping to host directories (`-v` parameter). If it had been launched without mapping, we would have used the following commands
+We launched `wp-volumes` container with direct mapping to host directories (`-v` parameter). If it had been launched without mapping, we would have used the following commands
 
 * backup
-  docker run --name wiez-volumes -d wiez-volumes tail -f /dev/null
-  docker run --volumes-from wiez-volumes -v $(pwd)/backups:/backups ubuntu tar cfz /backups/root.tgz /var/lib/mysql /var/www/html
+  docker run --name wp-volumes -d wp-volumes tail -f /dev/null
+  docker run --volumes-from wp-volumes -v $(pwd)/backups:/backups ubuntu tar cfz /backups/root.tgz /var/lib/mysql /var/www/html
  
 * restore 
-  docker run --name wiez-volumes -d wiez-volumes tail -f /dev/null
-  docker run --volumes-from wiez-volumes -v $(pwd)/backups/:/backups ubuntu bash -c "cd / && tar xvfz /backups/root.tgz"
+  docker run --name wp-volumes -d wp-volumes tail -f /dev/null
+  docker run --volumes-from wp-volumes -v $(pwd)/backups/:/backups ubuntu bash -c "cd / && tar xvfz /backups/root.tgz"
 
 
 # Executing commands in container

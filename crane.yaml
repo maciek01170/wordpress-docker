@@ -1,22 +1,22 @@
 containers:
-   wiez-wordpress:
+   wp-wordpress:
       image: maciek01170/docker-training:wordpress
       run:
-         volumes-from: ["wiez-volumes"]
+         volumes-from: ["wp-volumes"]
          link:
-            - wiez-mysql:mysql
+            - wp-mysql:mysql
          publish: ["8080:80"]
          detach: true
          env: ["WORDPRESS_DB_USER=root", "WORDPRESS_DB_PASSWORD=mysecretpassword"]
 
-   wiez-mysql:
+   wp-mysql:
       image: mysql
       run:
-         volumes-from: ["wiez-volumes"]
+         volumes-from: ["wp-volumes"]
          detach: true
          env: ["MYSQL_ROOT_PASSWORD=mysecretpassword"]
 
-   wiez-volumes:
+   wp-volumes:
       image: maciek01170/docker-training:data
       run:
          volume: ["data/var:/var"]
@@ -24,7 +24,7 @@ containers:
          cmd: "tail -f /dev/null"
 
 groups:
-   default: ['wiez-wordpress', 'wiez-mysql', 'wiez-volumes']
-   data_db: ['wiez-wordpress', 'wiez-mysql']
-   web: ['wiez-wordpress']
-   data_only: ['wiez-volumes']
+   default: ['wp-wordpress', 'wp-mysql', 'wp-volumes']
+   data_db: ['wp-wordpress', 'wp-mysql']
+   web: ['wp-wordpress']
+   data_only: ['wp-volumes']
